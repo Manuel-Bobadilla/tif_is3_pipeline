@@ -1,0 +1,39 @@
+pipeline{
+    agent any
+    
+    stages{
+        stage('Build'){
+            steps{
+               git branch: 'master', url: 'https://github.com/Manuel-Bobadilla/tif_is3_back.git'
+            
+                sh 'npm ci' 
+            }
+        }
+        
+        stage('Unit Testing'){
+            steps{
+                sh 'npm test'
+            }
+            post{
+                always{
+                    junit 'junit.xml'
+                }
+            }
+        }
+        
+        stage('DockerHub Upload'){
+            environment{
+                DOCKER_CREDS=credentials('credenciales-dockerhub')
+            }
+            steps {
+                sh 'docker login -u $DOCKER_CREDS_USR -p $DOCKER_CREDS_PSW'
+                
+                sh 'docker build -t "backend" .'
+                
+                sh 'docker tag backend manuelbobadilla/backend:latest'
+                
+                sh 'docker push manuelbobadilla/backend:latest'
+            }
+        }
+    }
+}
