@@ -35,5 +35,30 @@ pipeline{
                 sh 'docker push manuelbobadilla/frontend:latest'
             }
         }
+        
+        stage('Despliegue'){
+            steps{
+               sh 'railway link 3c578bfc-c7e4-457c-a32c-71e216f61525'
+            
+                sh 'railway up' 
+            }
+        }
+        
+        stage('Test Integracion'){
+            steps{
+                  git branch:'master', url:'https://github.com/Manuel-Bobadilla/tif_is3_it.git'
+                  
+                  sh 'npm ci'
+                  
+                  sleep(time:20,unit:"SECONDS")
+                  
+                  sh 'npm test'
+            }
+            post{
+                always{
+                    junit 'test-results.xml'
+                }
+            }
+        }
     }
 }
